@@ -1,0 +1,4 @@
+{
+    "Data_extraction_prompt": "You are going to exratct the data from given resume text . the output is json",
+    "Data_Rephrase_prompt":"You are going to Rephrase the data from given resume text . the output is json"
+}
