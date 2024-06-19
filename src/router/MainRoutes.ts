@@ -4,11 +4,11 @@ const MainRoutes = {
         requiresAuth: true
     },
     redirect: '/main',
-    component: () => import('@/layouts/full/FullLayout.vue'),
+    component: () => import('@/views/pages/resumeupload.vue'),
     children: [
         {
             name: 'Dashboard',
-            path: '/',
+            path: '/dash',
             component: () => import('@/views/dashboard/index.vue')
         },
         {
@@ -25,6 +25,16 @@ const MainRoutes = {
             name: 'Icons',
             path: '/icons',
             component: () => import('@/views/pages/Icons.vue')
+        },
+        {
+            name: 'Resumeupload',
+            path: '/resumeupload',
+            component: () => import('@/views/pages/resumeupload.vue')
+        },
+        {
+            name: 'Templateselection',
+            path: '/',
+            component: () => import('@/views/pages/TemplateSelection.vue')
         },
         {
             name: 'Starter',
