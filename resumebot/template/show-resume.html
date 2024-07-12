@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Topic Listing Contact Page</title>
+    <!-- CSS FILES -->        
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=Open+Sans&display=swap" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'css/templatemo-topic-listing.css' %}" rel="stylesheet">
+</head>
+<body class="topics-listing-page" id="top">
+    <main>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" href="/">
+                    <i class="bi-back"></i>
+                    <span>Topic</span>
+                </a>
+                <div class="d-lg-none ms-auto me-4">
+                    <a href="#top" class="navbar-icon bi-person smoothscroll"></a>
+                </div>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-lg-5 me-lg-auto">
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/#section_1">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/#section_2">Browse Topics</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/#section_3">How it works</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/#section_4">FAQs</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/#section_5">Contact</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#section_5" id="navbarLightDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Pages</a>
+                            <ul class="dropdown-menu dropdown-menu-light" aria-labelledby="navbarLightDropdownMenuLink">
+                                <li><a class="dropdown-item" href="#">Topics Listing</a></li>
+                                <li><a class="dropdown-item active" href="#">Contact Form</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <div class="d-none d-lg-block">
+                        <a href="#top" class="navbar-icon bi-person smoothscroll"></a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        <header class="site-header d-flex flex-column justify-content-center align-items-center">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-5 col-12">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/">Homepage</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Resume content</li>
+                            </ol>
+                        </nav>
+                        <h2 class="text-white">Resume content</h2>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <section class="section-padding section-bg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12 col-12">
+                        <h3 class="mb-4 pb-2">Verify the resume content</h3>
+                    </div>
+                    <div class="col-lg-6 col-12">
+                        <form id="resumeForm" class="custom-form contact-form" role="form">
+                            {% csrf_token %}
+                            <!-- Loop through resume items -->
+                            {% for key, value in resume.items %}
+                                {% if key == "contact_information" %}
+                                    <!-- Contact Information Section -->
+                                    <!-- Loop through contact_information items -->
+                                    {% for subkey, subvalue in value.items %}
+                                        <div class="form-group">
+                                            <!-- Input field for each subkey -->
+                                            <label for="contact_information_{{ subkey }}">{{ subkey|title }}</label>
+                                            <input type="text" name="contact_information_{{ subkey }}" id="contact_information_{{ subkey }}" class="form-control" placeholder="{{ subkey|title }}" value="{{ subvalue }}">
+                                        </div>
+                                    {% endfor %}
+                                {% elif key in 'education,work_experience,certifications,projects,awards' %}
+                                    <!-- Dynamic Sections -->
+                                    <h3>{{ key|title }}</h3>
+                                    <div id="{{ key }}_container">
+                                        <!-- Loop through items in each section -->
+                                        {% for item in value %}
+                                            <div class="{{ key }}_item">
+                                                <!-- Loop through item keys and values -->
+                                                {% for subkey, subvalue in item.items %}
+                                                    <div class="form-group">
+                                                        {% if subkey == "responsibilities" or subkey == "description" %}
+                                                            <!-- Textarea for responsibilities or description -->
+                                                            <label for="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}">{{ subkey|title }}</label>
+                                                            <textarea class="form-control" name="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}" id="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}" placeholder="{{ subkey|title }}">{{ subvalue }}</textarea>
+                                                        {% else %}
+                                                            <!-- Input field for other subkeys -->
+                                                            <label for="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}">{{ subkey|title }}</label>
+                                                            <input type="text" name="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}" id="{{ key }}_{{ forloop.parentloop.counter0 }}_{{ subkey }}" class="form-control" placeholder="{{ subkey|title }}" value="{{ subvalue }}">
+                                                        {% endif %}
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <!-- Button to add more sections -->
+                                    <button type="button" class="btn btn-secondary add-section" data-section="{{ key }}">Add {{ key|title }}</button>
+                                {% elif key in 'hard skills,soft skills,languages' %}
+                                    <!-- Hard Skills, Soft Skills, Languages Sections -->
+                                    <h3>{{ key|title }}</h3>
+                                    <div class="form-group">
+                                        <!-- Textarea for hard skills, soft skills, languages -->
+                                        <label for="{{ key|slugify }}">{{ key|title }}</label>
+                                        <textarea class="form-control" id="{{ key|slugify }}" name="{{ key|slugify }}" placeholder="{{ key|title }}">{{ value|join:", " }}</textarea>
+                                    </div>
+                                {% else %}
+                                    <!-- Other Sections -->
+                                    <h3>{{ key|title }}</h3>
+                                    <div class="form-group">
+                                        {% if value|length > 100 %}
+                                            <!-- Textarea for longer values -->
+                                            <label for="{{ key }}">{{ key|title }}</label>
+                                            <textarea class="form-control" id="{{ key }}" name="{{ key }}" placeholder="{{ key|title }}">{{ value }}</textarea>
+                                        {% else %}
+                                            <!-- Input field for shorter values -->
+                                            <label for="{{ key }}">{{ key|title }}</label>
+                                            <input type="text" name="{{ key }}" id="{{ key }}" class="form-control" placeholder="{{ key|title }}" value="{{ value }}">
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <!-- Submit button to send form data -->
+                            <div class="col-lg-4 col-12 ms-auto">
+                                <button type="button" id="submitForm" class="btn btn-primary">Enhance</button>
+                                <a href='{% url "resume_preview" %}' class="btn custom-btn mt-2 mt-lg-3">priview resume</a>
+                            </div>
+                            
+
+                        </form>
+ 
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="site-footer section-padding">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-12 mb-4 pb-2">
+                    <a class="navbar-brand mb-2" href="#">
+                        <i class="bi-back"></i>
+                        <span>Topic</span>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-4 col-6">
+                    <h6 class="site-footer-title mb-3">Resources</h6>
+                    <ul class="site-footer-links">
+                        <li class="site-footer-link-item">
+                            <a href="/" class="site-footer-link">Home</a>
+                        </li>
+                        <li class="site-footer-link-item">
+                            <a href="/#section_3" class="site-footer-link">How it works</a>
+                        </li>
+                        <li class="site-footer-link-item">
+                            <a href="/#section_4" class="site-footer-link">FAQs</a>
+                        </li>
+                        <li class="site-footer-link-item">
+                            <a href="/#section_5" class="site-footer-link">Contact</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 col-6 mb-4 mb-lg-0">
+                    <h6 class="site-footer-title mb-3">Information</h6>
+                    <p class="text-white d-flex mb-1">
+                        <a href="tel: 305-240-9671" class="site-footer-link">305-240-9671</a>
+                    </p>
+                    <p class="text-white d-flex">
+                        <a href="mailto:info@company.com" class="site-footer-link">info@company.com</a>
+                    </p>
+                </div>
+                <div class="col-lg-3 col-md-4 col-12 mt-4 mt-lg-0 ms-auto">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">English</button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" type="button">Thai</button></li>
+                            <li><button class="dropdown-item" type="button">Myanmar</button></li>
+                            <li><button class="dropdown-item" type="button">Arabic</button></li>
+                        </ul>
+                    </div>
+                    <p class="copyright-text mt-lg-5 mt-4">Copyright © 2048 Topic Listing Center. All rights reserved.
+                    <br><br>Design: <a rel="nofollow" href="https://templatemo.com" target="_blank">TemplateMo</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- JAVASCRIPT FILES -->
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/jquery.sticky.js' %}"></script>
+    <script src="{% static 'js/custom.js' %}"></script>
+<script>
+$(document).ready(function() {
+    // Add button click handler
+    $('.add-section').click(function() {
+        var section = $(this).data('section');
+        var container = $('#' + section + '_container');
+        var template = container.children('.' + section + '_item').first().clone();
+
+        // Clear input values in the cloned template
+        template.find('input[type="text"], textarea').val('');
+
+        // Append cloned template to container
+        container.append(template);
+    });
+});
+</script>
+<script>
+    $(document).ready(function() {
+        // Add button click handler
+        $('.add-section').click(function() {
+            var section = $(this).data('section');
+            var container = $('#' + section + '_container');
+            var template = container.children('.' + section + '_item').first().clone();
+    
+            // Clear input values in the cloned template
+            template.find('input[type="text"], textarea').val('');
+    
+            // Append cloned template to container
+            container.append(template);
+        });
+    
+        $('#submitForm').click(function() {
+            // Show loading screen immediately
+            showLoadingScreen();
+    
+            var form_data = $('#resumeForm').serializeArray();
+            var resume_data = {
+                contact_information: {},
+                education: [],
+                work_experience: [],
+                certifications: [],
+                projects: [],
+                awards: [],
+                hard_skills: [],
+                soft_skills: [],
+                languages: []
+            };
+    
+            $.each(form_data, function(index, field) {
+                var name_parts = field.name.split('_');
+                var section = name_parts[0];
+    
+                if (section === 'contact') {
+                    resume_data.contact_information[name_parts.slice(2).join('_')] = field.value;
+                } else if (['education', 'work_experience', 'certifications', 'projects', 'awards'].includes(section)) {
+                    var itemIndex = parseInt(name_parts[1]);
+                    var subkey = name_parts.slice(2).join('_');
+    
+                    if (!resume_data[section][itemIndex]) {
+                        resume_data[section][itemIndex] = {};
+                    }
+                    resume_data[section][itemIndex][subkey] = field.value;
+                } else if (['hard_skills', 'soft_skills', 'languages'].includes(section)) {
+                    resume_data[section] = field.value.split(',').map(item => item.trim());
+                } else {
+                    resume_data[section] = field.value;
+                }
+            });
+    
+            // Clean up empty items in arrays
+            ['education', 'work_experience', 'certifications', 'projects', 'awards'].forEach(section => {
+                resume_data[section] = resume_data[section].filter(item => Object.keys(item).length > 0);
+            });
+    
+            // Send resume_data as JSON to the backend
+            $.ajax({
+                type: 'POST',
+                url: '{% url "store_resumeform" %}',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                contentType: 'application/json',
+                data: JSON.stringify({ resume: resume_data }),
+                success: function(response) {
+                    console.log(response);
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        hideLoadingScreen();
+                        console.log('No redirect URL provided in the response');
+                    }
+                },
+                error: function(error) {
+                    hideLoadingScreen();
+                    console.log('Error submitting resume data:', error);
+                }
+            });
+        });
+    });
+    
+    function showLoadingScreen() {
+        $('body').append('<div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;"><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px;">Loading...</div></div>');
+    }
+    
+    function hideLoadingScreen() {
+        $('#loadingScreen').remove();
+    }
+    </script>
+
+    
+
+</body>
+</html>
