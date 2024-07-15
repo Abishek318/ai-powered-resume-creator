@@ -21,7 +21,7 @@ from resumeapp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
-    # path('submit_message/', views.submit_message, name='submit_message'),
+    path('create_new_resume/', views.create_new_resume, name='create-new-resume'),
     # path('message/', views.show_message, name='show_message'),
     path('upload/', views.upload_resume, name='upload-api'),
     path('analyze_description/', views.analyze_description, name='analyze_description'),

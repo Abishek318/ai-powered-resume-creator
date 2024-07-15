@@ -34,21 +34,27 @@ def upload_resume(request):
     if request.method == 'POST':
         file = request.FILES.get('file')
         template_id = request.POST.get('template_id')
-        if file:
-            content=read_pdf(file)
-            temp_id = str(uuid.uuid4())
-            json_output= llm_model(prompt_json_data["Data_extraction_prompt"],content)
-            # json_output={"hi":"hi"}
-            Resume.objects.create(temp_id=temp_id, content=json.dumps(json_output),template_id=template_id)
-            
-            # Store temp_id in session
-            request.session['temp_id'] = temp_id
-
-            # Assuming you process the file and have a result URL
-            if template_id:
-                result_url = '/show_resume/'  # Change this to the actual result URL
+        if file or template_id:
+            if file:
+                content=read_pdf(file)
+                temp_id = str(uuid.uuid4())
+                json_output= llm_model(prompt_json_data["Data_extraction_prompt"],content)
+                Resume.objects.create(temp_id=temp_id, content=json.dumps(json_output),template_id=template_id)
+                
+                # Store temp_id in session
+                request.session['temp_id'] = temp_id
             else:
-                result_url = '/analyze_description/'  # Change this to the actual result URL
+                temp_id = request.session.get('temp_id')
+                try:
+                    resume=Resume.objects.get(temp_id=temp_id)
+                    resume.template_id =template_id
+                    resume.save()
+                except Resume.DoesNotExist:
+                    Resume.objects.create(temp_id=temp_id, content=json.dumps({}),template_id=template_id)
+            if template_id:
+                result_url = '/show_resume/' 
+            else:
+                result_url = '/analyze_description/'  
             return JsonResponse({'redirect_url': result_url})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
@@ -110,7 +116,7 @@ def result_view(request):
     temp_id = request.session.get('temp_id')
     result_rseponse = AccuracyRsesult.objects.get(temp_id=temp_id)
     result_data=json.loads(result_rseponse.result)
-    return render(request, 'result.html', {'result_data': result_data})
+    return render(request, 'result.html', result_data)
 
 
 def job_description(request):      
@@ -142,11 +148,28 @@ def job_description(request):
     return render(request, 'jop-des.html', {'form': form,"jobdesp":job_json,"analysis_type":"analyze"})
 
 def template_detail(request, template_id):
-        context = {
-            'template_id': template_id
-        }
-        return render(request, 'chose-build-method.html', context)
-    
+        try:
+            resume_upload_status=False
+            temp_id = request.session.get('temp_id')
+            resume = Resume.objects.get(temp_id=temp_id)
+            if json.loads(resume.content):
+                resume_upload_status=True
+        except Exception as e:
+            resume_upload_status=False
+            print(e)
+        if template_id:
+            context = {
+                'template_id': template_id,
+                "resume_upload_status":resume_upload_status
+            }
+            return render(request, 'chose-build-method.html', context)
+        else:
+            context = {
+                'template': resume_template,
+                "resume_upload_status":resume_upload_status
+            }
+            return render(request, 'resume-templates.html', context)
+            
 
 def store_resume(request):
     if request.method == 'POST':
@@ -210,6 +233,17 @@ def resume_preview(request):
         context = {"resume_doc_byte": pdf_base64}
         return render(request, 'resume_preview.html', context)
     return render(request, 'resume_preview.html', context)
+
+def create_new_resume(request):
+    if request.method == 'POST':
+        temp_id = str(uuid.uuid4())
+        request.session['temp_id'] = temp_id
+        template_id = request.POST.get('template_id')
+        Resume.objects.create(temp_id=temp_id, content=json.dumps({}),template_id=template_id)
+        context={'resume': {}}
+        return render(request, 'show-resume.html', context)
+    redirect("home")
+   
 
 # def download_resume(request, session_id):
 #     file_path = os.path.join(settings.MEDIA_ROOT, 'temp', session_id, 'resume.pdf')

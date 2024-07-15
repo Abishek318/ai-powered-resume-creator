@@ -9,7 +9,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Resume creator</title>
+    <title>AI-Resume creator</title>
 
     <!-- CSS FILES -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -70,14 +70,6 @@
         }
     </style>
 
-
-    <!--
-
-TemplateMo 590 topic listing
-
-https://templatemo.com/tm-590-topic-listing
-
--->
 </head>
 
 <body id="top">
@@ -88,7 +80,7 @@ https://templatemo.com/tm-590-topic-listing
             <div class="container">
                 <a class="navbar-brand" href="/">
                     <i class="bi-back"></i>
-                    <span>Resume creator</span>
+                    <span>AI-Resume creator</span>
                 </a>
 
                 <div class="d-lg-none ms-auto me-4">
@@ -200,16 +192,16 @@ https://templatemo.com/tm-590-topic-listing
                             <a href="#section_2">
                                 <div class="d-flex">
                                     <div>
-                                        <h5 class="mb-2">Resume creator</h5>
+                                        <h5 class="mb-2">Create resume</h5>
 
-                                        <p class="mb-0">select the one of the resume template below</p>
+                                        <p class="mb-0">click to select the one of the resume template</p>
                                     </div>
 
                                 </div>
-                                <a href="#section_2" class="btn custom-btn mt-2 mt-lg-3">Learn More</a>
 
                                 <img src="{% static 'images/topics/undraw_Remote_design_team_re_urdx.png' %}"
                                     class="custom-block-image img-fluid" alt="">
+                                <a href="#section_2" class="btn custom-btn mt-2 mt-lg-3">Learn More</a>
                             </a>
                         </div>
                     </div>
@@ -228,7 +220,7 @@ https://templatemo.com/tm-590-topic-listing
                     </div>
                 </div>
             </div>
-        
+
             <div class="container-fluid">
                 <div class="row">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -240,7 +232,7 @@ https://templatemo.com/tm-590-topic-listing
                     </ul>
                 </div>
             </div>
-        
+
             <div class="container">
                 <div class="row">
                     <div class="col-12">
@@ -251,15 +243,18 @@ https://templatemo.com/tm-590-topic-listing
                                     {% for temp in template %}
                                     <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
                                         <div class="custom-block bg-white shadow-lg">
-                                            <a href="#" onclick="redirectToDetail('{{ temp.template_id }}'); return false;">
+                                            <a href="#"
+                                                onclick="redirectToDetail('{{ temp.template_id }}'); return false;">
                                                 <div class="d-flex">
                                                     <div>
                                                         <h5 class="mb-2">{{ temp.template_name }}</h5>
-                                                        <p class="mb-0">{{ temp.template_id }} Topic Listing Template based on Bootstrap 5</p>
+                                                        <p class="mb-0">{{ temp.template_id }} Topic Listing Template
+                                                            based on Bootstrap 5</p>
                                                     </div>
                                                     <span class="badge bg-design rounded-pill ms-auto">14</span>
                                                 </div>
-                                                <img src="{{ temp.path }}" class="custom-block-image img-fluid" alt="">
+                                                <img src="{% static temp.path %}" class="custom-block-image img-fluid"
+                                                    alt="">
                                             </a>
                                         </div>
                                     </div>
@@ -271,8 +266,6 @@ https://templatemo.com/tm-590-topic-listing
                 </div>
             </div>
         </section>
-        
-        
 
     </main>
 
@@ -350,12 +343,11 @@ https://templatemo.com/tm-590-topic-listing
         </div>
     </footer>
 
-
     <!-- JAVASCRIPT FILES -->
     <script src="{% static 'js/jquery.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/jquery.sticky.js' %}"></script>
-    <script src="{% static 'js/click-scroll.js' %}"></script>
+    <!-- <script src="{% static 'js/click-scroll.js' %}"></script> -->
     <script src="{% static 'js/custom.js' %}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
@@ -458,13 +450,13 @@ https://templatemo.com/tm-590-topic-listing
     </script>
 
 
-<script>
-    function redirectToDetail(templateId) {
-        // Perform any additional actions if needed
-        // For example, you can navigate to the detail page with the template ID
-        window.location.href = '/template/' + templateId; // Replace with your actual detail page URL
-    }
-</script>
+    <script>
+        function redirectToDetail(templateId) {
+            // Perform any additional actions if needed
+            // For example, you can navigate to the detail page with the template ID
+            window.location.href = '/template/' + templateId; // Replace with your actual detail page URL
+        }
+    </script>
 
 </body>
 
