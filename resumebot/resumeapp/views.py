@@ -59,13 +59,18 @@ def upload_resume(request):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 def show_resume(request):
-    try:
-        temp_id = request.session.get('temp_id')
+    temp_id = request.session.get('temp_id')
+    if temp_id:
         resume = Resume.objects.get(temp_id=temp_id)
-        resume=json.loads(resume.content)
-        return render(request, 'show-resume.html', {'resume': resume})
-    except Resume.DoesNotExist:
-        return redirect("home")
+        if resume.template_id:
+            resume=json.loads(resume.content)
+            return render(request, 'show-resume.html', {'resume': resume})
+        else:
+            context={"page":"template_detail",'template_id': "0","page_name":"Template Selection page","message":"Sorry, you cann't view the page.First you need to select the template"}
+            return  render(request, 'error_page.html', context)
+    else:
+        context={"page":"home","page_name":"Return to Homepage","message":"Sorry, you cann't view the page.First you need to upload the resume."}
+        return  render(request, 'error_page.html', context)
     
 
 def analyze_description(request):
@@ -112,40 +117,45 @@ def analyze_description(request):
     return render(request, 'jop-des.html', {'form': form,"jobdesp":job_json,"analysis_type":"accuracy"})
 
 def result_view(request):
-    # Example data; you would normally get this from your process
-    temp_id = request.session.get('temp_id')
-    result_rseponse = AccuracyRsesult.objects.get(temp_id=temp_id)
-    result_data=json.loads(result_rseponse.result)
-    return render(request, 'result.html', result_data)
+    try:
+        # Example data; you would normally get this from your process
+        temp_id = request.session.get('temp_id')
+        result_rseponse = AccuracyRsesult.objects.get(temp_id=temp_id)
+        result_data=json.loads(result_rseponse.result)
+        return render(request, 'result.html', result_data)
+    except Exception as e:
+        return redirect("home")
 
 
 def job_description(request):      
-
+     
     temp_id = request.session.get('temp_id')
+    if temp_id:
+        input_text="""-resume content:{resume} 
+                            -job description :{description}
+                """
+        try:
+            description=JobDescription.objects.get(temp_id=temp_id)
+        except JobDescription.DoesNotExist:
+            description=None
+        
+        if description:
+            resume= AnalyzedContent.objects.get(temp_id=temp_id)
 
-    input_text="""-resume content:{resume} 
-                        -job description :{description}
-            """
-    try:
-        description=JobDescription.objects.get(temp_id=temp_id)
-    except JobDescription.DoesNotExist:
-        description=None
-    
-    if description:
-        resume= AnalyzedContent.objects.get(temp_id=temp_id)
-
-        if resume.rephrase_status==False:
-            # analysis_result = {"hi":"hi"}
-            analysis_result = llm_model(prompt_json_data["Data_Rephrase_prompt"],input_text.format(resume=resume.content,description=description.description))
-            # Update existing object with new content
-            resume.content = json.dumps(analysis_result)
-            resume.rephrase_status=True
-            resume.save()
-        else:
-            analysis_result =json.loads(resume.content)
-        return render(request, 'show-resume.html', {'resume':analysis_result })
-    form = JobDescriptionForm()
-    return render(request, 'jop-des.html', {'form': form,"jobdesp":job_json,"analysis_type":"analyze"})
+            if resume.rephrase_status==False:
+                # analysis_result = {"hi":"hi"}
+                analysis_result = llm_model(prompt_json_data["Data_Rephrase_prompt"],input_text.format(resume=resume.content,description=description.description))
+                # Update existing object with new content
+                resume.content = json.dumps(analysis_result)
+                resume.rephrase_status=True
+                resume.save()
+            else:
+                analysis_result =json.loads(resume.content)
+            return render(request, 'show-resume.html', {'resume':analysis_result })
+        form = JobDescriptionForm()
+        return render(request, 'jop-des.html', {'form': form,"jobdesp":job_json,"analysis_type":"analyze"})
+    else:
+        return redirect("home")
 
 def template_detail(request, template_id):
         try:
@@ -217,22 +227,25 @@ def store_resume(request):
 
 def resume_preview(request):
     temp_id = request.session.get('temp_id')
-    try:
-        analyzed_content = AnalyzedContent.objects.get(temp_id=temp_id)
-    except AnalyzedContent.DoesNotExist:
-        analyzed_content=Resume.objects.get(temp_id=temp_id)
+    if temp_id:
+        try:
+            analyzed_content = AnalyzedContent.objects.get(temp_id=temp_id)
+        except AnalyzedContent.DoesNotExist:
+            analyzed_content=Resume.objects.get(temp_id=temp_id)
 
-    if analyzed_content:
-        doc = create_word_document(json_data=json.loads(analyzed_content.content))
-        # Convert Document object to bytes
-        docx_bytes = io.BytesIO()
-        doc.save(docx_bytes)
-        docx_bytes = docx_bytes.getvalue()
-        
-        pdf_base64 = word_bytes_to_pdf_base64(docx_bytes,temp_id)
-        context = {"resume_doc_byte": pdf_base64}
+        if analyzed_content:
+            doc = create_word_document(json_data=json.loads(analyzed_content.content))
+            # Convert Document object to bytes
+            docx_bytes = io.BytesIO()
+            doc.save(docx_bytes)
+            docx_bytes = docx_bytes.getvalue()
+            
+            pdf_base64 = word_bytes_to_pdf_base64(docx_bytes,temp_id)
+            context = {"resume_doc_byte": pdf_base64}
+            return render(request, 'resume_preview.html', context)
         return render(request, 'resume_preview.html', context)
-    return render(request, 'resume_preview.html', context)
+    else:
+        return redirect("home")
 
 def create_new_resume(request):
     if request.method == 'POST':
