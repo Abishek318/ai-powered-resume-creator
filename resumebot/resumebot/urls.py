@@ -21,6 +21,8 @@ from resumeapp import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home, name='home'),
+    path('login', views.login_view, name='login'),
+    path('logout', views.logout_view, name='logout'),
     path('create_new_resume/', views.create_new_resume, name='create-new-resume'),
     # path('message/', views.show_message, name='show_message'),
     path('upload/', views.upload_resume, name='upload-api'),
@@ -31,6 +33,7 @@ urlpatterns = [
     path('store_resumeform/', views.store_resume, name='store_resumeform'),
     path('job_description/', views.job_description, name='job_description'),
     path('resume_preview/', views.resume_preview, name='resume_preview'),
+    path('clear_data/', views.clear_data, name='clear_data'),
     # path('download-resume/<str:session_id>/', views.download_resume, name='download_resume'),
 
 

@@ -13,6 +13,10 @@ from django.http import JsonResponse
 from django.http import HttpResponseNotFound
 from django.urls import reverse
 from .document_handler import read_pdf,word_bytes_to_pdf_base64,create_word_document
+from django.contrib.auth import authenticate, login,logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 import io
 
 logger = logging.getLogger()
@@ -29,6 +33,34 @@ model_name="gemini-1.5-flash"
 
 def home(request):    
     return render(request, 'index.html',{"template":resume_template})
+
+
+def login_view(request):
+    if not(request.user.is_authenticated):
+        if request.method == 'POST':
+            form = AuthenticationForm(request, data=request.POST)
+            if form.is_valid():
+                username = form.cleaned_data.get('username')
+                password = form.cleaned_data.get('password')
+                user = authenticate(username=username, password=password)
+                if user is not None:
+                    login(request, user)
+                    # messages.success(request, f'Welcome back, {username}!')
+                    return redirect('clear_data')  
+                else:
+                    messages.error(request, 'Invalid username or password.')
+            else:
+                messages.error(request, 'Invalid username or password.')
+        else:
+            form = AuthenticationForm()
+        return render(request, 'login.html', {'form': form})
+    else:
+        return redirect('clear_data')  
+
+@login_required
+def logout_view(request):
+    logout(request)
+    return redirect('home')
 
 def upload_resume(request):
     if request.method == 'POST':
@@ -95,7 +127,6 @@ def analyze_description(request):
             if analysis_type == 'analyze':
                 resume= AnalyzedContent.objects.get(temp_id=temp_id)
                 
-                # analysis_result = {"hi":"hi"}
                 analysis_result = llm_model(prompt_json_data["Data_Rephrase_prompt"],input_text.format(resume=resume.content,description=description))
                 # Update existing object with new content
                 resume.content = json.dumps(analysis_result)
@@ -104,7 +135,6 @@ def analyze_description(request):
 
             elif analysis_type == 'accuracy':
                 resume = Resume.objects.get(temp_id=temp_id)
-                # analysis_result = {"hi":"hi"}
                 analysis_result = llm_model(prompt_json_data["Data_Accuracy_prompt"],input_text.format(resume=resume.content,description=description))
                 
                 if AccuracyRsesult.objects.filter(temp_id = temp_id):
@@ -118,7 +148,6 @@ def analyze_description(request):
 
 def result_view(request):
     try:
-        # Example data; you would normally get this from your process
         temp_id = request.session.get('temp_id')
         result_rseponse = AccuracyRsesult.objects.get(temp_id=temp_id)
         result_data=json.loads(result_rseponse.result)
@@ -143,7 +172,6 @@ def job_description(request):
             resume= AnalyzedContent.objects.get(temp_id=temp_id)
 
             if resume.rephrase_status==False:
-                # analysis_result = {"hi":"hi"}
                 analysis_result = llm_model(prompt_json_data["Data_Rephrase_prompt"],input_text.format(resume=resume.content,description=description.description))
                 # Update existing object with new content
                 resume.content = json.dumps(analysis_result)
@@ -202,15 +230,11 @@ def store_resume(request):
             "awards": resume_data.get("awards", [])
         }
 
-        # No need to process education, work_experience, etc. separately
-        # as they should already be in the correct format in the JSON data
-
         temp_id = request.session.get('temp_id')
         resume_json = json.dumps(formatted_resume)
 
         try:
             analyzed_content = AnalyzedContent.objects.get(temp_id=temp_id)
-            # Update existing object with new content
             analyzed_content.content = resume_json
             analyzed_content.rephrase_status=False
             analyzed_content.save()
@@ -220,7 +244,7 @@ def store_resume(request):
         return JsonResponse({
             'status': 'success',
             'message': 'Resume stored successfully',
-            'redirect_url': reverse('job_description')  # Use the name of your job description URL pattern
+            'redirect_url': reverse('job_description') 
         })
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
@@ -258,6 +282,27 @@ def create_new_resume(request):
     redirect("home")
    
 
+@login_required
+def clear_data(request):
+    # Get counts of data in each model
+    context = {
+        'models': [
+            {'model_name': 'Resume', 'count': Resume.objects.count()},
+            {'model_name': 'AnalyzedContent', 'count': AnalyzedContent.objects.count()},
+            {'model_name': 'AccuracyRsesult', 'count': AccuracyRsesult.objects.count()},
+            {'model_name': 'JobDescription', 'count': JobDescription.objects.count()},
+        ]
+    }
+
+    if request.method == 'POST':
+        # Handle POST request to truncate all models
+        Resume.objects.all().delete()
+        AnalyzedContent.objects.all().delete()
+        AccuracyRsesult.objects.all().delete()
+        JobDescription.objects.all().delete()
+        return redirect('clear_data')  # Redirect to clear_data page after truncating
+
+    return render(request, 'clear_data.html', context)
 # def download_resume(request, session_id):
 #     file_path = os.path.join(settings.MEDIA_ROOT, 'temp', session_id, 'resume.pdf')
 #     if os.path.exists(file_path):
@@ -269,8 +314,6 @@ def create_new_resume(request):
 
 
 # ++++++++++++++++++++++++++++++++++++
-
-
 
 
 def llm_model(system_prompt:str,resume_text:str):
