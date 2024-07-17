@@ -26,7 +26,7 @@ promt_path="prompt.json"
 pattern = r'```json([\s\S]*?)```'
 
 load_dotenv(".env")
-GOOGLE_API_KEY=os.environ["GOOGLE_API_KEY"]
+GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 model_name="gemini-1.5-flash"
 

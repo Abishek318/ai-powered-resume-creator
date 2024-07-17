@@ -8,3 +8,5 @@ python-docx
 docx2pdf
 
 jinja2
+gunicorn
+whitenoise
