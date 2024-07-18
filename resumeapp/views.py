@@ -2,7 +2,6 @@ from django.shortcuts import render, redirect
 from .forms import JobDescriptionForm
 from .models import Resume,AccuracyRsesult,AnalyzedContent,JobDescription
 import uuid
-from dotenv import load_dotenv
 import os
 import google.generativeai as genai
 import re 
@@ -25,7 +24,6 @@ logger.setLevel(logging.INFO)
 promt_path="prompt.json"
 pattern = r'```json([\s\S]*?)```'
 
-load_dotenv(".env")
 GOOGLE_API_KEY=os.environ.get("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 model_name="gemini-1.5-flash"
