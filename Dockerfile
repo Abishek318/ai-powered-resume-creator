@@ -1,4 +1,4 @@
-FROM python:3-alpine AS builder
+FROM python:3.10-alpine AS builder
  
 WORKDIR /app
  
@@ -15,12 +15,12 @@ FROM python:3-alpine AS runner
 WORKDIR /app
  
 COPY --from=builder /app/venv venv
-COPY resumebot resumebot
+COPY . .
  
 ENV VIRTUAL_ENV=/app/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PORT=8000
- 
+RUN python manage.py collectstatic --noinput 
 EXPOSE ${PORT}
  
 CMD gunicorn --bind :${PORT} --workers 2 resumebot.wsgi
