@@ -1,0 +1,12 @@
+django
+pandas
+PyPDF2
+google-generativeai
+python-dotenv
+python-docx
+
+docx2pdf
+
+jinja2
+gunicorn
+whitenoise
