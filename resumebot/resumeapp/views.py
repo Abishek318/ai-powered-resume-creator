@@ -153,7 +153,8 @@ def result_view(request):
         result_data=json.loads(result_rseponse.result)
         return render(request, 'result.html', result_data)
     except Exception as e:
-        return redirect("home")
+        context={"page":"home","page_name":"Return to Homepage","message":"Sorry, you cann't view the page.First you need to upload the resume."}
+        return  render(request, 'error_page.html', context)
 
 
 def job_description(request):      
