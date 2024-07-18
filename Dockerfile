@@ -23,18 +23,18 @@ COPY --from=builder /app/venv venv
 COPY . .
 
 # Collect static files
-RUN . venv/bin/activate 
-
+RUN . venv/bin/activate && python manage.py collectstatic --noinput
 
 ENV VIRTUAL_ENV=/app/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV PORT=8000
 
-EXPOSE ${PORT}
-
-
-COPY ./entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
+# EXPOSE ${PORT}
+# COPY ./entrypoint.sh /
+# RUN chmod +x /entrypoint.sh
+# ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
 
 CMD gunicorn --bind :${PORT} --workers 2 resumebot.wsgi:application
+
+# docker build -t bot .  
+# docker run -p 8000:8000 bot 
