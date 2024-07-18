@@ -1,26 +1,19 @@
 FROM python:3.10-alpine AS builder
  
+RUN pip install --upgrade pip
+
 WORKDIR /app
- 
-RUN python3 -m venv venv
-ENV VIRTUAL_ENV=/app/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
- 
-COPY requirements.txt .
+
+COPY ./requirements.txt .
 RUN pip install -r requirements.txt
- 
-# Stage 2
-FROM python:3-alpine AS runner
- 
-WORKDIR /app
- 
-COPY --from=builder /app/venv venv
+
 COPY . .
- 
-ENV VIRTUAL_ENV=/app/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV PORT=8000
-RUN python manage.py collectstatic --noinput 
-EXPOSE ${PORT}
- 
-CMD gunicorn --bind :${PORT} --workers 2 resumebot.wsgi
+
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]

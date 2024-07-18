@@ -1,0 +1,24 @@
+services:
+  django_gunicorn:
+    volumes:
+      - static:/app/staticfiles
+      - media:/app/media
+    env_file:
+      - .env
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+  nginx:
+    build: ./nginx
+    volumes:
+      - static:/static
+      - media:/media
+    ports:
+      - "80:80"
+    depends_on:
+      - django_gunicorn
+
+volumes:
+  static:
+  media:
