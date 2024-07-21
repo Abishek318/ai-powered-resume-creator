@@ -129,8 +129,8 @@ job_json=[
  
   ]
 
-resume_template=[{"template_id":1,"template_name":"simple","path":"images/resume1.png"},
-                 {"template_id":2,"template_name":"simple","path":"images/topics/undraw_Remote_design_team_re_urdx.png"},
-                 {"template_id":3,"template_name":"simple","path":"images/topics/undraw_Remote_design_team_re_urdx.png"}  
+resume_template=[{"template_id":"NXTCG7Ir4z","template_name":"simple","path":"images/resume1.png"},
+                 {"template_id":"YAC4nDlAB8","template_name":"simple","path":"images/topics/undraw_Remote_design_team_re_urdx.png"},
+                 {"template_id":"gMR5oGDETm","template_name":"simple","path":"images/topics/undraw_Remote_design_team_re_urdx.png"}  
                  ]
 

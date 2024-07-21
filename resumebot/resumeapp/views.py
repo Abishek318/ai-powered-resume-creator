@@ -8,16 +8,18 @@ import google.generativeai as genai
 import re 
 import json
 import logging
-from .prompt import prompt_json_data,job_json,resume_template
+from .prompt import *
 from django.http import JsonResponse
-from django.http import HttpResponseNotFound
 from django.urls import reverse
-from .document_handler import read_pdf,word_bytes_to_pdf_base64,create_word_document
+from .document_handler import read_pdf,convert_html_to_pdf,generate_resume_html
 from django.contrib.auth import authenticate, login,logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-import io
+# from django.template import loader
+# import io
+from django.http import HttpResponseNotFound
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -98,7 +100,7 @@ def show_resume(request):
             resume=json.loads(resume.content)
             return render(request, 'show-resume.html', {'resume': resume})
         else:
-            context={"page":"template_detail",'template_id': "0","page_name":"Template Selection page","message":"Sorry, you cann't view the page.First you need to select the template"}
+            context={"page":"template_detail",'template_id': "Y124nDlAB8","page_name":"Template Selection page","message":"Sorry, you cann't view the page.First you need to select the template"}
             return  render(request, 'error_page.html', context)
     else:
         context={"page":"home","page_name":"Return to Homepage","message":"Sorry, you cann't view the page.First you need to upload the resume."}
@@ -196,7 +198,7 @@ def template_detail(request, template_id):
         except Exception as e:
             resume_upload_status=False
             print(e)
-        if template_id:
+        if template_id!="Y124nDlAB8":
             context = {
                 'template_id': template_id,
                 "resume_upload_status":resume_upload_status
@@ -250,25 +252,50 @@ def store_resume(request):
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
+# def resume_preview(request):
+#     temp_id = request.session.get('temp_id')
+#     if temp_id:
+#         try:
+#             analyzed_content = AnalyzedContent.objects.get(temp_id=temp_id)
+#         except AnalyzedContent.DoesNotExist:
+#             analyzed_content=Resume.objects.get(temp_id=temp_id)
+
+#         if analyzed_content:
+#             doc = create_word_document(json_data=json.loads(analyzed_content.content))
+#             # Convert Document object to bytes
+#             docx_bytes = io.BytesIO()
+#             doc.save(docx_bytes)
+#             docx_bytes = docx_bytes.getvalue()
+            
+#             pdf_base64 = word_bytes_to_pdf_base64(docx_bytes,temp_id)
+#             context = {"resume_doc_byte": pdf_base64}
+#             return render(request, 'resume_preview.html', context)
+#         return redirect("home")
+#     else:
+#         return redirect("home")
+
 def resume_preview(request):
     temp_id = request.session.get('temp_id')
     if temp_id:
-        try:
-            analyzed_content = AnalyzedContent.objects.get(temp_id=temp_id)
-        except AnalyzedContent.DoesNotExist:
-            analyzed_content=Resume.objects.get(temp_id=temp_id)
+        analyzed_content_obj=AnalyzedContent.objects.filter(temp_id=temp_id).values()
+        template_id_obj=Resume.objects.filter(temp_id=temp_id).values()
+        template_id=template_id_obj[0]["template_id"]
+        if analyzed_content_obj:
+            analyzed_content=json.loads(analyzed_content_obj[0]["content"])
+        else:
+            analyzed_content=json.loads(template_id_obj[0]["content"])
 
-        if analyzed_content:
-            doc = create_word_document(json_data=json.loads(analyzed_content.content))
-            # Convert Document object to bytes
-            docx_bytes = io.BytesIO()
-            doc.save(docx_bytes)
-            docx_bytes = docx_bytes.getvalue()
-            
-            pdf_base64 = word_bytes_to_pdf_base64(docx_bytes,temp_id)
-            context = {"resume_doc_byte": pdf_base64}
+        if analyzed_content and template_id:
+            from .resume_html_template import html_template_json
+            template=html_template_json[template_id]
+            html_content=generate_resume_html(template,analyzed_content)
+            resume_doc_byte=convert_html_to_pdf(html_content)
+            if resume_doc_byte:
+                context = {"resume_doc_byte": convert_html_to_pdf(html_content)}
+            else:
+                return  render(request, '500.html')
             return render(request, 'resume_preview.html', context)
-        return render(request, 'resume_preview.html', context)
+        return redirect("home")
     else:
         return redirect("home")
 
