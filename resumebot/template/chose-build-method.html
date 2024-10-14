@@ -1,0 +1,285 @@
+{% include "header.html" %}
+
+{% load static %}
+<html>
+<body id="top">
+
+    <main>
+        
+        <section class="hero-section d-flex justify-content-center align-items-center" id="section_1">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-8 col-12 mx-auto">
+                        <h1 class="text-white text-center">Enhance the resume</h1>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="featured-section">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-4 col-12 mb-4 mb-lg-0">
+                        <div class="custom-block bg-white shadow-lg">
+                            <a href="#">
+                                <div class="d-flex">
+                                    <div>
+                                        <h5 class="mb-2">Use Old Resume</h5>
+                                        {% if resume_upload_status %}
+                                        <p class="mb-0">Click the button to use old resume</p>
+                                        {% else %}
+                                        <p class="mb-0">Here you can upload the file.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <img src="{% static 'images/topics/undraw_Remote_design_team_re_urdx.png' %}"
+                                    class="custom-block-image img-fluid" alt="">
+                            </a>
+                            <!-- Upload Form -->
+                            <form id="file-upload-form" class="uploader">
+                                {% csrf_token %}
+                                <input id="file-upload" type="file" name="fileUpload" accept="application/pdf" />
+                                <input type="hidden" id="template-id" name="template_id" value="{{ template_id }}">
+                                
+                                {% if resume_upload_status %}
+                                <input type="hidden" id="resume-upload-status" name="resume_upload_status" value="{{ resume_upload_status }}">
+                                <center><button id="enhance-resume-btn" class="btn custom-btn mt-2 mt-lg-3">Enhance old resume</button></center>
+                                {% else %}
+                                <center><label for="file-upload" id="file-drag">
+                                        <div id="start">
+                                            <i class="fa fa-download" aria-hidden="true"></i>
+                                            <div>Select a file or drag here</div>
+                                            <div id="notpdf" class="hidden">Please select a PDF</div>
+                                            <span id="file-upload-btn" class="btn btn-primary">Select a file</span>
+                                        </div>
+                                        <div id="response" class="hidden">
+                                            <div id="messages"></div>
+                                            <progress class="progress" id="file-progress" value="0">
+                                                <span>0</span>%
+                                            </progress>
+                                        </div>
+                                    </label></center>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                    <!-- Loading screen -->
+                    <div class="loading-screen" id="loading-screen">
+                        <div class="spinner">
+                            <i class="fa fa-spinner fa-spin"></i> Loading...
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-12 mb-4 mb-lg-0">
+                        <div class="custom-block bg-white shadow-lg">
+                            <a href="#section_2">
+                                <div class="d-flex">
+                                    <div>
+                                        <h5 class="mb-2">create from scratch</h5>
+                                        <p class="mb-0">create from scratch</p>
+                                    </div>
+                                </div>
+                                <img src="{% static 'images/topics/undraw_Remote_design_team_re_urdx.png' %}"
+                                    class="custom-block-image img-fluid" alt="">
+                                    
+                                    <center><form action="{% url 'create-new-resume' %}" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" id="template-id" name="template_id" value="{{ template_id }}">
+                                <button  action = "Submit" class="btn custom-btn mt-2 mt-lg-3">create from scratch</button>
+                                    </form></center>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include "footer.html" %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+            const csrftoken = getCookie('csrftoken');
+
+            function init() {
+                let fileSelect = document.getElementById('file-upload'),
+                    fileDrag = document.getElementById('file-drag'),
+                    notPdf = document.getElementById('notpdf'),
+                    fileProgress = document.getElementById('file-progress'),
+                    messages = document.getElementById('messages'),
+                    response = document.getElementById('response'),
+                    fileUploadBtn = document.getElementById('file-upload-btn'),
+                    loadingScreen = document.getElementById('loading-screen'),
+                    enhanceResumeBtn = document.getElementById('enhance-resume-btn');
+
+                if (fileSelect) {
+                    fileSelect.addEventListener('change', fileSelectHandler);
+                }
+
+                if (fileUploadBtn) {
+                    fileUploadBtn.addEventListener('click', function () {
+                        fileSelect.click();
+                    });
+                }
+
+                if (fileDrag) {
+                    fileDrag.addEventListener('dragover', fileDragHover, false);
+                    fileDrag.addEventListener('dragleave', fileDragHover, false);
+                    fileDrag.addEventListener('drop', fileSelectHandler, false);
+                }
+
+                if (enhanceResumeBtn) {
+                    enhanceResumeBtn.addEventListener('click', enhanceResume);
+                }
+
+                function fileDragHover(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    fileDrag.className = (e.type === 'dragover' ? 'hover' : 'modal-body file-upload');
+                }
+
+                function fileSelectHandler(e) {
+                    let files = e.target.files || e.dataTransfer.files;
+                    fileDragHover(e);
+                    for (let i = 0, f; f = files[i]; i++) {
+                        uploadFile(f);
+                    }
+                }
+
+                function enhanceResume(e) {
+                    e.preventDefault();
+                    loadingScreen.style.display = 'block';
+
+                    let formData = new FormData();
+                    formData.append('template_id', document.getElementById('template-id').value);
+                    formData.append('resume_upload_status', document.getElementById('resume-upload-status').value);
+
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{% url "upload-api" %}', true);
+                    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4) {
+                            loadingScreen.style.display = 'none';
+                            if (xhr.status == 200) {
+                                let response = JSON.parse(xhr.responseText);
+                                window.location.href = response.redirect_url;
+                            } else {
+                                messages.innerHTML = `<strong>Error</strong> enhancing resume.`;
+                            }
+                        }
+                    };
+
+                    xhr.send(formData);
+                }
+
+                function uploadFile(file) {
+                    if (file.type !== "application/pdf") {
+                        notPdf.classList.remove('hidden');
+                        return;
+                    }
+                    notPdf.classList.add('hidden');
+                    response.classList.remove('hidden');
+                    loadingScreen.style.display = 'block';
+
+                    let formData = new FormData();
+                    formData.append('file', file);
+                    formData.append('template_id', document.getElementById('template-id').value);
+
+                    let xhr = new XMLHttpRequest();
+                    xhr.open('POST', '{% url "upload-api" %}', true);
+                    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+
+                    xhr.upload.addEventListener('progress', function (e) {
+                        if (e.lengthComputable) {
+                            let percentComplete = (e.loaded / e.total) * 100;
+                            fileProgress.value = percentComplete;
+                            fileProgress.getElementsByTagName('span')[0].innerText = Math.round(percentComplete);
+                        }
+                    });
+
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState == 4) {
+                            loadingScreen.style.display = 'none';
+                            if (xhr.status == 200) {
+                                let response = JSON.parse(xhr.responseText);
+                                messages.innerHTML = `<strong>${file.name}</strong> uploaded successfully.`;
+                                window.location.href = response.redirect_url;
+                            } else {
+                                messages.innerHTML = `<strong>Error</strong> uploading file.`;
+                            }
+                        }
+                    };
+
+                    xhr.send(formData);
+                }
+            }
+
+            if (window.File && window.FileList && window.FileReader) {
+                init();
+            }
+        });
+    </script>
+
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        #file-drag {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        #file-drag.hover {
+            border-color: #333;
+        }
+
+        #file-progress {
+            width: 100%;
+            height: 20px;
+        }
+
+        #file-upload {
+            display: none;
+        }
+
+        .loading-screen {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .loading-screen .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: #fff;
+        }
+    </style>
+</body>
+</html>

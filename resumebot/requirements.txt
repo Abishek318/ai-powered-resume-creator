@@ -1,0 +1,6 @@
+django
+PyPDF2
+google-generativeai
+python-dotenv
+xhtml2pdf
+jinja2

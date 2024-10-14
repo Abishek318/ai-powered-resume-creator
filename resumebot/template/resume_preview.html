@@ -1,0 +1,124 @@
+{% include "header.html" %}
+
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Preview & Download</title>
+    <style>
+        .document-container {
+            width: 100%;
+            height: 800px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .document-page {
+            width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        .action-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .resume-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .resume-description {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        .pdf-viewer {
+            width: 100%;
+            height: 800px;
+            border: none;
+        }
+        .mobile-download {
+            display: none;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="topics-listing-page" id="top">
+    <main>
+        <header class="site-header d-flex flex-column justify-content-center align-items-center">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-5 col-12">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="/">Homepage</a></li>
+                                <li class="breadcrumb-item active" aria-current="page">Resume Preview</li>
+                            </ol>
+                        </nav>
+                        <h2 class="text-white">Resume Preview & Download</h2>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+
+        <section class="section-padding section-bg">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <h3 class="resume-title">Your Professional Resume</h3>
+                        <p class="resume-description">This is a preview of your professionally crafted resume. You can view it here or download it for your records.</p>
+                        <div class="action-buttons">
+                            <a href="data:application/pdf;base64,{{ resume_doc_byte|default:'' }}" download="resume.pdf" class="btn btn-primary">
+                                <i class="bi bi-download"></i> Download Resume
+                            </a>
+                            <!-- <button class="btn btn-outline-secondary" onclick="printResume()">
+                                <i class="bi bi-printer"></i> Print Resume
+                            </button> -->
+                        </div>
+                        <div class="document-container">
+                            <iframe class="pdf-viewer" src="data:application/pdf;base64,{{ resume_doc_byte|default:'' }}"></iframe>
+                            <div class="mobile-download">
+                                <p>PDF preview is not available on this device. Please download the resume to view it.</p>
+                                <a href="data:application/pdf;base64,{{ resume_doc_byte|default:'' }}" download="resume.pdf" class="btn btn-primary">
+                                    <i class="bi bi-download"></i> Download Resume
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    {% include "footer.html" %}
+
+    <script>
+        // function printResume() {
+        //     window.print();
+        // }
+
+        function checkPDFViewer() {
+            var pdfViewer = document.querySelector('.pdf-viewer');
+            var mobileDownload = document.querySelector('.mobile-download');
+            
+            // Check if the PDF viewer is supported
+            if (pdfViewer.contentDocument && pdfViewer.contentDocument.body.childElementCount === 0) {
+                pdfViewer.style.display = 'none';
+                mobileDownload.style.display = 'block';
+            } else {
+                pdfViewer.style.display = 'block';
+                mobileDownload.style.display = 'none';
+            }
+        }
+
+        // Run the check when the page loads and when the window is resized
+        window.addEventListener('load', checkPDFViewer);
+        window.addEventListener('resize', checkPDFViewer);
+    </script>
+</body>
+</html>
