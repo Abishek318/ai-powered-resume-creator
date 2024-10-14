@@ -122,7 +122,6 @@ def analyze_description(request):
             except JobDescription.DoesNotExist:
                 JobDescription.objects.create(temp_id=temp_id, description=description)
 
-
             input_text="""-resume content:{resume} 
                         -job description :{description}
             """
@@ -331,15 +330,6 @@ def clear_data(request):
         return redirect('clear_data')  # Redirect to clear_data page after truncating
 
     return render(request, 'clear_data.html', context)
-# def download_resume(request, session_id):
-#     file_path = os.path.join(settings.MEDIA_ROOT, 'temp', session_id, 'resume.pdf')
-#     if os.path.exists(file_path):
-#         with open(file_path, 'rb') as fh:
-#             response = HttpResponse(fh.read(), content_type="application/pdf")
-#             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
-#             return response
-#     return HttpResponse("File not found", status=404)
-
 
 # ++++++++++++++++++++++++++++++++++++
 

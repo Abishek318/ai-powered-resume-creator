@@ -2,6 +2,7 @@
 
 {% load static %}
 <html>
+
 <body id="top">
 
     <main>
@@ -156,14 +157,14 @@
 
                                 <!-- Soft & hard Skills -->
                                 <div class="col-12 mt-5">
-                                    <label for="inputSoftSkills" class="form-label">
-                                        Soft Skills</label>
-                                    <textarea class="form-control" id="SoftSkills">{{ resume.softskills }}</textarea>
+                                    <label for="inputSoftSkills" class="form-label">Soft Skills</label>
+                                    <textarea class="form-control" id="SoftSkills" name="soft_skills"
+                                        required>{{ resume.softskills }}</textarea>
                                 </div>
                                 <div class="col-12 mt-5">
-                                    <label for="inputhardSkills" class="form-label">
-                                        Hard Skills</label>
-                                    <textarea class="form-control" id="HardSkills">{{ resume.softskills }}</textarea>
+                                    <label for="inputHardSkills" class="form-label">Hard Skills</label>
+                                    <textarea class="form-control" id="HardSkills" name="hard_skills"
+                                        required>{{ resume.hardskills }}</textarea>
                                 </div>
                                 <!-- Certifications Section -->
                                 <h3 class="my-5">Certifications</h3>
@@ -284,7 +285,8 @@
                                         data-section="projects">Add Project</button>
                                 </div>
                                 <!-- Awards Section -->
-                                <h3 class="my-5">Awards</h3>
+                                <!-- Awards Section -->
+                                <h3 class="my-5">Awards (Optional)</h3>
                                 <div id="awards_container">
                                     {% if resume.awards %}
                                     {% for award in resume.awards %}
@@ -295,8 +297,7 @@
                                                 Name</label>
                                             <input type="text" class="form-control"
                                                 id="inputaward_name_{{ forloop.counter0 }}"
-                                                name="award_{{ forloop.counter0 }}_name" value="{{ award.name }}"
-                                                required>
+                                                name="award_{{ forloop.counter0 }}_name" value="{{ award.name }}">
                                         </div>
                                         <div class="col-12">
                                             <label for="inputaward_institution_{{ forloop.counter0 }}"
@@ -304,15 +305,14 @@
                                             <input type="text" class="form-control"
                                                 id="inputaward_institution_{{ forloop.counter0 }}"
                                                 name="award_{{ forloop.counter0 }}_institution"
-                                                value="{{ award.institution }}" required>
+                                                value="{{ award.institution }}">
                                         </div>
                                         <div class="col-12 mb-4">
                                             <label for="inputaward_year_{{ forloop.counter0 }}"
                                                 class="form-label">Year</label>
                                             <input type="text" class="form-control"
                                                 id="inputaward_year_{{ forloop.counter0 }}"
-                                                name="award_{{ forloop.counter0 }}_year" value="{{ award.year }}"
-                                                required>
+                                                name="award_{{ forloop.counter0 }}_year" value="{{ award.year }}">
                                         </div>
                                     </div>
                                     {% endfor %}
@@ -322,31 +322,29 @@
                                         <div class="col-12">
                                             <label for="inputaward_name_0" class="form-label">Award Name</label>
                                             <input type="text" class="form-control" id="inputaward_name_0"
-                                                name="award_0_name" required>
+                                                name="award_0_name">
                                         </div>
                                         <div class="col-12">
                                             <label for="inputaward_institution_0" class="form-label">Institution</label>
                                             <input type="text" class="form-control" id="inputaward_institution_0"
-                                                name="award_0_institution" required>
+                                                name="award_0_institution">
                                         </div>
                                         <div class="col-12 mb-4">
                                             <label for="inputaward_year_0" class="form-label">Year</label>
                                             <input type="text" class="form-control" id="inputaward_year_0"
-                                                name="award_0_year" required>
+                                                name="award_0_year">
                                         </div>
                                     </div>
                                     {% endif %}
-                                </div>
-                                <div class="col-4">
-                                    <button type="button" class="btn btn-secondary add-section"
-                                        data-section="awards">Add Award</button>
                                 </div>
 
                                 <!-- Awards -->
                                 <div class="col-12">
                                     <label for="inputlanguages" class="form-label">Languages</label>
-                                    <input type="text" class="form-control" id="languages"
-                                        value="{{ resume.languages }}">
+                                    <input type="text" class="form-control" id="languages" name="languages"
+                                        value="{{ resume.languages|join:', ' }}">
+                                    <small class="form-text text-muted">Enter languages separated by commas (e.g.,
+                                        English, Spanish, French)</small>
                                 </div>
 
                                 <!-- Submit button to send form data -->
@@ -365,6 +363,24 @@
 
     {% include "footer.html" %}
     <script>
+        // Utility functions
+        function arrayToString(arr) {
+            return Array.isArray(arr) ? arr.join(', ') : '';
+        }
+
+        function stringToArray(str) {
+            return str.split(',').map(item => item.trim()).filter(item => item !== '');
+        }
+
+        // DOM ready event listener
+        document.addEventListener('DOMContentLoaded', function () {
+            var languagesInput = document.getElementById('languages');
+            var initialLanguages = {{ resume.languages| safe |default: "[]"
+        }};
+        languagesInput.value = arrayToString(initialLanguages);
+});
+
+        // jQuery ready function
         $(document).ready(function () {
             // Add button click handler
             $('.add-section').click(function () {
@@ -376,253 +392,254 @@
                 container.append(newItem);
             });
 
+            // Remove button click handler (using event delegation)
+            $(document).on('click', '.remove-section', function () {
+                $(this).closest('.education_item, .work_experience_item, .certification_item, .project_item, .award_item').remove();
+                updateSectionNumbers();
+            });
+
+            // Form submission
+            $('#submitForm').click(function (e) {
+                e.preventDefault();
+                if (validateForm()) {
+                    showLoadingScreen();
+
+                    var form_data = $('#resumeForm').serializeArray();
+                    var resume_data = {
+                        contact_information: {},
+                        education: [],
+                        work_experience: [],
+                        certifications: [],
+                        projects: [],
+                        awards: [],
+                        hard_skills: [],
+                        soft_skills: [],
+                        languages: []
+                    };
+
+                    $.each(form_data, function (index, field) {
+                        var name_parts = field.name.split('_');
+                        var section = name_parts[0];
+
+                        if (section === 'contact') {
+                            resume_data.contact_information[name_parts.slice(2).join('_')] = field.value;
+                        } else if (['education', 'work_experience', 'certifications', 'projects', 'awards'].includes(section)) {
+                            var itemIndex = parseInt(name_parts[1]);
+                            var subkey = name_parts.slice(2).join('_');
+
+                            if (!resume_data[section][itemIndex]) {
+                                resume_data[section][itemIndex] = {};
+                            }
+                            resume_data[section][itemIndex][subkey] = field.value;
+                        } else if (section === 'hard_skills' || section === 'soft_skills') {
+                            resume_data[section] = stringToArray(field.value);
+                        } else if (section === 'languages') {
+                            resume_data.languages = stringToArray(field.value);
+                        } else {
+                            resume_data[section] = field.value;
+                        }
+                    });
+
+                    // Clean up empty items in arrays
+                    ['education', 'work_experience', 'certifications', 'projects', 'awards'].forEach(section => {
+                        resume_data[section] = resume_data[section].filter(item => Object.keys(item).length > 0 && Object.values(item).some(val => val.trim() !== ''));
+                    });
+
+                    // Send resume_data as JSON to the backend
+                    $.ajax({
+                        type: 'POST',
+                        url: '{% url "store_resumeform" %}',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        contentType: 'application/json',
+                        data: JSON.stringify({ resume: resume_data }),
+                        success: function (response) {
+                            console.log(response);
+                            if (response.redirect_url) {
+                                window.location.href = response.redirect_url;
+                            } else {
+                                hideLoadingScreen();
+                                console.log('No redirect URL provided in the response');
+                            }
+                        },
+                        error: function (error) {
+                            hideLoadingScreen();
+                            console.log('Error submitting resume data:', error);
+                        }
+                    });
+                }
+            });
+
             function createNewItem(section, index) {
                 var template = '';
                 switch (section) {
                     case 'education':
                         template = `
-                    <div class="education_item">
-                        <h6>Education ${index + 1}</h6>
-                        <div class="col-12">
-                            <label for="inputdegree_${index}" class="form-label">Degree</label>
-                            <input type="text" class="form-control" id="inputdegree_${index}" name="education_${index}_degree" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputinstitution_${index}" class="form-label">Institution</label>
-                            <input type="text" class="form-control" id="inputinstitution_${index}" name="education_${index}_institution" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputgraduation_year_${index}" class="form-label">Graduation year</label>
-                            <input type="text" class="form-control" id="inputgraduation_year_${index}" name="education_${index}_graduation_year" required>
-                        </div>
-                        <div class="col-12 mb-4">
-                            <label for="inputCGP_${index}" class="form-label">CGP</label>
-                            <input type="text" class="form-control" id="inputCGP_${index}" name="education_${index}_CGP" required>
-                        </div>
-                        <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                <div class="education_item">
+                    <h6>Education ${index + 1}</h6>
+                    <div class="col-12">
+                        <label for="inputdegree_${index}" class="form-label">Degree</label>
+                        <input type="text" class="form-control" id="inputdegree_${index}" name="education_${index}_degree" required>
                     </div>
-                `;
+                    <div class="col-12">
+                        <label for="inputinstitution_${index}" class="form-label">Institution</label>
+                        <input type="text" class="form-control" id="inputinstitution_${index}" name="education_${index}_institution" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="inputgraduation_year_${index}" class="form-label">Graduation year</label>
+                        <input type="text" class="form-control" id="inputgraduation_year_${index}" name="education_${index}_graduation_year" required>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label for="inputCGP_${index}" class="form-label">CGP</label>
+                        <input type="text" class="form-control" id="inputCGP_${index}" name="education_${index}_CGP" required>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                </div>
+            `;
                         break;
                     case 'work_experience':
                         template = `
-                    <div class="work_experience_item">
-                        <h6>Work Experience ${index + 1}</h6>
-                        <div class="col-12">
-                            <label for="inputjob_title_${index}" class="form-label">Job Title</label>
-                            <input type="text" class="form-control" id="inputjob_title_${index}" name="work_experience_${index}_job_title" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputcompany_${index}" class="form-label">Company</label>
-                            <input type="text" class="form-control" id="inputcompany_${index}" name="work_experience_${index}_company" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputstart_date_${index}" class="form-label">Start Date</label>
-                            <input type="text" class="form-control" id="inputstart_date_${index}" name="work_experience_${index}_start_date" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputend_date_${index}" class="form-label">End Date</label>
-                            <input type="text" class="form-control" id="inputend_date_${index}" name="work_experience_${index}_end_date" required>
-                        </div>
-                        <div class="col-12 mb-4">
-                            <label for="inputresponsibilities_${index}" class="form-label">Responsibilities</label>
-                            <textarea class="form-control" id="inputresponsibilities_${index}" name="work_experience_${index}_responsibilities" required></textarea>
-                        </div>
-                        <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                <div class="work_experience_item">
+                    <h6>Work Experience ${index + 1}</h6>
+                    <div class="col-12">
+                        <label for="inputjob_title_${index}" class="form-label">Job Title</label>
+                        <input type="text" class="form-control" id="inputjob_title_${index}" name="work_experience_${index}_job_title" required>
                     </div>
-                `;
+                    <div class="col-12">
+                        <label for="inputcompany_${index}" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="inputcompany_${index}" name="work_experience_${index}_company" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="inputstart_date_${index}" class="form-label">Start Date</label>
+                        <input type="text" class="form-control" id="inputstart_date_${index}" name="work_experience_${index}_start_date" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="inputend_date_${index}" class="form-label">End Date</label>
+                        <input type="text" class="form-control" id="inputend_date_${index}" name="work_experience_${index}_end_date" required>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label for="inputresponsibilities_${index}" class="form-label">Responsibilities</label>
+                        <textarea class="form-control" id="inputresponsibilities_${index}" name="work_experience_${index}_responsibilities" required></textarea>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                </div>
+            `;
                         break;
                     case 'certifications':
                         template = `
-                    <div class="certification_item">
-                        <h6>Certification ${index + 1}</h6>
-                        <div class="col-12">
-                            <label for="inputcert_name_${index}" class="form-label">Certification Name</label>
-                            <input type="text" class="form-control" id="inputcert_name_${index}" name="certification_${index}_name" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputcert_institution_${index}" class="form-label">Institution</label>
-                            <input type="text" class="form-control" id="inputcert_institution_${index}" name="certification_${index}_institution" required>
-                        </div>
-                        <div class="col-12 mb-4">
-                            <label for="inputcert_year_${index}" class="form-label">Year</label>
-                            <input type="text" class="form-control" id="inputcert_year_${index}" name="certification_${index}_year" required>
-                        </div>
-                        <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                <div class="certification_item">
+                    <h6>Certification ${index + 1}</h6>
+                    <div class="col-12">
+                        <label for="inputcert_name_${index}" class="form-label">Certification Name</label>
+                        <input type="text" class="form-control" id="inputcert_name_${index}" name="certification_${index}_name" required>
                     </div>
-                `;
+                    <div class="col-12">
+                        <label for="inputcert_institution_${index}" class="form-label">Institution</label>
+                        <input type="text" class="form-control" id="inputcert_institution_${index}" name="certification_${index}_institution" required>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label for="inputcert_year_${index}" class="form-label">Year</label>
+                        <input type="text" class="form-control" id="inputcert_year_${index}" name="certification_${index}_year" required>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                </div>
+            `;
                         break;
                     case 'projects':
                         template = `
-                    <div class="project_item">
-                        <h6>Project ${index + 1}</h6>
-                        <div class="col-12">
-                            <label for="inputproj_name_${index}" class="form-label">Project Name</label>
-                            <input type="text" class="form-control" id="inputproj_name_${index}" name="project_${index}_name" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputproj_description_${index}" class="form-label">Description</label>
-                            <textarea class="form-control" id="inputproj_description_${index}" name="project_${index}_description" required></textarea>
-                        </div>
-                        <div class="col-12 mb-4">
-                            <label for="inputproj_technologies_${index}" class="form-label">Technologies</label>
-                            <input type="text" class="form-control" id="inputproj_technologies_${index}" name="project_${index}_technologies" required>
-                        </div>
-                        <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                <div class="project_item">
+                    <h6>Project ${index + 1}</h6>
+                    <div class="col-12">
+                        <label for="inputproj_name_${index}" class="form-label">Project Name</label>
+                        <input type="text" class="form-control" id="inputproj_name_${index}" name="project_${index}_name" required>
                     </div>
-                `;
+                    <div class="col-12">
+                        <label for="inputproj_description_${index}" class="form-label">Description</label>
+                        <textarea class="form-control" id="inputproj_description_${index}" name="project_${index}_description" required></textarea>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label for="inputproj_technologies_${index}" class="form-label">Technologies</label>
+                        <input type="text" class="form-control" id="inputproj_technologies_${index}" name="project_${index}_technologies" required>
+                    </div>
+                    <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                </div>
+            `;
                         break;
-                        case 'awards':
-                template = `
-                    <div class="award_item">
-                        <h6>Award ${index + 1}</h6>
-                        <div class="col-12">
-                            <label for="inputaward_name_${index}" class="form-label">Award Name</label>
-                            <input type="text" class="form-control" id="inputaward_name_${index}" name="award_${index}_name" required>
-                        </div>
-                        <div class="col-12">
-                            <label for="inputaward_institution_${index}" class="form-label">Institution</label>
-                            <input type="text" class="form-control" id="inputaward_institution_${index}" name="award_${index}_institution" required>
-                        </div>
-                        <div class="col-12 mb-4">
-                            <label for="inputaward_year_${index}" class="form-label">Year</label>
-                            <input type="text" class="form-control" id="inputaward_year_${index}" name="award_${index}_year" required>
-                        </div>
-                        <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                    case 'awards':
+                        template = `
+                <div class="award_item">
+                    <h6>Award ${index + 1}</h6>
+                    <div class="col-12">
+                        <label for="inputaward_name_${index}" class="form-label">Award Name</label>
+                        <input type="text" class="form-control" id="inputaward_name_${index}" name="award_${index}_name">
                     </div>
-                `;
-                break;
+                    <div class="col-12">
+                        <label for="inputaward_institution_${index}" class="form-label">Institution</label>
+                        <input type="text" class="form-control" id="inputaward_institution_${index}" name="award_${index}_institution">
+                    </div>
+                    <div class="col-12 mb-4">
+                        <label for="inputaward_year_${index}" class="form-label">Year</label>
+                        <input type="text" class="form-control" id="inputaward_year_${index}" name="award_${index}_year">
+                    </div>
+                    <button type="button" class="btn btn-danger remove-section mt-2">Remove</button>
+                </div>
+            `;
+                        break;
                 }
                 return $(template);
             }
 
-            // Remove button click handler (using event delegation)
-    $(document).on('click', '.remove-section', function () {
-        $(this).closest('.education_item, .work_experience_item, .certification_item, .project_item, .award_item').remove();
-        updateSectionNumbers();
-    });
-
-    function updateSectionNumbers() {
-        $('.education_item').each(function (index) {
-            $(this).find('h6').text('Education ' + (index + 1));
-        });
-        $('.work_experience_item').each(function (index) {
-            $(this).find('h6').text('Work Experience ' + (index + 1));
-        });
-        $('.certification_item').each(function (index) {
-            $(this).find('h6').text('Certification ' + (index + 1));
-        });
-        $('.project_item').each(function (index) {
-            $(this).find('h6').text('Project ' + (index + 1));
-        });
-        $('.award_item').each(function (index) {
-            $(this).find('h6').text('Award ' + (index + 1));
-        });
-    }
-
-    // Form submission
-    $('#submitForm').click(function (e) {
-        e.preventDefault();
-        if (validateForm()) {
-            showLoadingScreen();
-
-            var form_data = $('#resumeForm').serializeArray();
-            var resume_data = {
-                contact_information: {},
-                education: [],
-                work_experience: [],
-                certifications: [],
-                projects: [],
-                awards: [],
-                hard_skills: [],
-                soft_skills: [],
-                languages: []
-            };
-
-            $.each(form_data, function (index, field) {
-                var name_parts = field.name.split('_');
-                var section = name_parts[0];
-
-                if (section === 'contact') {
-                    resume_data.contact_information[name_parts.slice(2).join('_')] = field.value;
-                } else if (['education', 'work_experience', 'certifications', 'projects', 'awards'].includes(section)) {
-                    var itemIndex = parseInt(name_parts[1]);
-                    var subkey = name_parts.slice(2).join('_');
-
-                    if (!resume_data[section][itemIndex]) {
-                        resume_data[section][itemIndex] = {};
-                    }
-                    resume_data[section][itemIndex][subkey] = field.value;
-                } else if (['hard_skills', 'soft_skills', 'languages'].includes(section)) {
-                    resume_data[section] = field.value.split(',').map(item => item.trim());
-                } else {
-                    resume_data[section] = field.value;
-                }
-            });
-
-            // Clean up empty items in arrays
-            ['education', 'work_experience', 'certifications', 'projects', 'awards'].forEach(section => {
-                resume_data[section] = resume_data[section].filter(item => Object.keys(item).length > 0);
-            });
-
-            // Send resume_data as JSON to the backend
-            $.ajax({
-                type: 'POST',
-                url: '{% url "store_resumeform" %}',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                contentType: 'application/json',
-                data: JSON.stringify({ resume: resume_data }),
-                success: function (response) {
-                    console.log(response);
-                    if (response.redirect_url) {
-                        window.location.href = response.redirect_url;
-                    } else {
-                        hideLoadingScreen();
-                        console.log('No redirect URL provided in the response');
-                    }
-                },
-                error: function (error) {
-                    hideLoadingScreen();
-                    console.log('Error submitting resume data:', error);
-                }
-            });
-        }
-    });
-
-    function validateForm() {
-        var isValid = true;
-        $('#resumeForm input[required], #resumeForm textarea[required]').each(function () {
-            if ($(this).val().trim() === '') {
-                isValid = false;
-                $(this).addClass('is-invalid');
-            } else {
-                $(this).removeClass('is-invalid');
+            function updateSectionNumbers() {
+                $('.education_item').each(function (index) {
+                    $(this).find('h6').text('Education ' + (index + 1));
+                });
+                $('.work_experience_item').each(function (index) {
+                    $(this).find('h6').text('Work Experience ' + (index + 1));
+                });
+                $('.certification_item').each(function (index) {
+                    $(this).find('h6').text('Certification ' + (index + 1));
+                });
+                $('.project_item').each(function (index) {
+                    $(this).find('h6').text('Project ' + (index + 1));
+                });
+                $('.award_item').each(function (index) {
+                    $(this).find('h6').text('Award ' + (index + 1));
+                });
             }
-        });
 
-        // Email validation
-        var emailInput = $('#email');
-        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(emailInput.val())) {
-            isValid = false;
-            emailInput.addClass('is-invalid');
-        } else {
-            emailInput.removeClass('is-invalid');
-        }
+            function validateForm() {
+                var isValid = true;
+                $('#resumeForm input[required], #resumeForm textarea[required]').each(function () {
+                    if ($(this).val().trim() === '') {
+                        isValid = false;
+                        $(this).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                    }
+                });
 
-        return isValid;
-    }
+                // Email validation
+                var emailInput = $('#email');
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(emailInput.val())) {
+                    isValid = false;
+                    emailInput.addClass('is-invalid');
+                } else {
+                    emailInput.removeClass('is-invalid');
+                }
 
-    function showLoadingScreen() {
-        $('body').append('<div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;"><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px;">Loading...</div></div>');
-    }
+                return isValid;
+            }
 
-    function hideLoadingScreen() {                                  
-        $('#loadingScreen').remove();
-    }
-});
-</script>
+            function showLoadingScreen() {
+                $('body').append('<div id="loadingScreen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 9999;"><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 24px;">Loading...</div></div>');
+            }
+
+            function hideLoadingScreen() {
+                $('#loadingScreen').remove();
+            }
+        });    </script>
 
 
 
